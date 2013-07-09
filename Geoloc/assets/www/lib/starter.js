@@ -69,6 +69,9 @@ $(document).ready( function() {
 			}
 			lowBat = true;
 		}
+		else if (info.isPlugged == true){			
+			lowBat = false;
+		}
 	}
 
 	function checkConnection() {
@@ -100,12 +103,12 @@ $(document).ready( function() {
 	    if (internet == false){
 	    	$(".internet").buttonMarkup({'theme':"b", 'icon':"check" });
 	  	internet = true;
-		if (ioFile == false){
+		/*if (ioFile == false){
 			 loadIO();
 		}
 		 else{
 			connectSocket();
-		}
+		}*/
 
 		/*if (gmapFile == false){
 			loadgMap(); // A reprendre !
@@ -121,7 +124,7 @@ $(document).ready( function() {
 	    }
 	}
 
-	function connectSocket(){
+	/*function connectSocket(){
 		// Lance la connection au socket.
 		if (nodejs == false){
 			iosocket = io.connect("http://91.121.133.40:4321");
@@ -151,10 +154,10 @@ $(document).ready( function() {
 					alert('auth !');
 				});
 
-				iosocket.emit('authenticate', authMessage);
+				iosocket.emit('device-authenticate', authMessage);
 			});
 		}
-	}
+	}*/
 
 	$('#geosite').live('tap', function(){
 		var url = $(this).attr("rel");
@@ -464,25 +467,26 @@ $(document).ready( function() {
 				};
 				iosocket.emit('message', posMessage);		
 			}
-
-		/*$.ajax({
-  			url: "http://ks201694.kimsufi.com:4321",
-  			type:"POST",
-  			data: JSON.stringify({
-				"uuid" : 'uuid-'+device.uuid,
-				"lat" : position.coords.latitude,
-				"lon" : position.coords.longitude,
-				"altitude" : position.coords.altitude,
-				"vitesse" : position.coords.speed,
-				"precision" : position.coords.accuracy,
-				"vario" : vario,
-				"timestamp" : position.timestamp
-			}),
-  			contentType:"application/json; charset=utf-8",
-  			success: function(){
-    				console.log("envoyé");
-  			}
-		});*/
+			else{
+				$.ajax({
+  					url: "http://ks201694.kimsufi.com:4321",
+  					type:"POST",
+  					data: JSON.stringify({
+						"uuid" : 'uuid-'+device.uuid,
+						"lat" : Math.round(position.coords.latitude * 10000000)/ 10000000,
+						"lon" : Math.round(position.coords.longitude * 10000000)/10000000,
+						"altitude" : Math.round(position.coords.altitude),
+						"vitesse" : Math.round(position.coords.speed * 3.6 * 100) /100,
+						"precision" : Math.round(position.coords.accuracy),
+						"vario" : Math.round(position.coords.vario * 100) /100,
+						"timestamp" : position.timestamp
+					}),
+  					contentType:"application/json; charset=utf-8",
+  					success: function(){
+    						console.log("envoyé");
+  					}
+				});
+			}
 
 			$("#startTracking_debug").html(
 				'Latitude: '          + Math.round(position.coords.latitude * 10000000)/ 10000000 + '</br>' +
